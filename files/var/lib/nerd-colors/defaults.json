@@ -3,5 +3,5 @@
  "_comment2": "change settings.json instead!",
 
  "led.brightness"  : 4,
- "led.color"       : [255, 255, 255]
+ "led.color"       : "#00FF00"
 }
