@@ -58,11 +58,11 @@ class Msg(object):
 def init(parser):
   """ Initialize objects """
 
-  settings     = nclock.Settings.Settings(parser)
+  settings     = ncolors.Settings.Settings(parser)
   settings.log = Msg(settings.get_value('GLOBAL','debug',0))
   settings.load()
 
-  settings.leds    = nclock.LedController.LedController(settings)
+  settings.leds    = ncolors.LedController.LedController(settings)
   return settings
 
 # --- start all threads   --------------------------------------------------
@@ -73,7 +73,7 @@ def start_threads(settings):
   threads = []
 
   if settings.get_value('WEB','active','1') != '0':
-    webThread = nclock.WebThread.WebThread(settings)
+    webThread = ncolors.WebThread.WebThread(settings)
     threads.append(webThread)
 
   map(threading.Thread.start, threads)
