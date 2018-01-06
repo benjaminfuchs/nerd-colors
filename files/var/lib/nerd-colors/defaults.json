@@ -2,6 +2,6 @@
  "_comment1": "Don't change this file",
  "_comment2": "change settings.json instead!",
 
- "led.brightness"  : 4,
+ "led.brightness"  : 1,
  "led.color"       : "#00FF00"
 }
