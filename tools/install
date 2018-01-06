@@ -2,17 +2,15 @@
 # --------------------------------------------------------------------------
 # This script installs files and services specific to this project.
 #
-# Author: Bernhard Bablok
+# Author: Benjamin Fuchs
 # License: GPL3
 #
-# Website: https://github.com/bablokb/nerd-alarmclock
+# Website: https://github.com/benjaminfuchs/nerd-colors
 #
 # --------------------------------------------------------------------------
 
 PACKAGES="python-pip python-blinkt python-simplejson python-bottle"
 PROJECT="nerd-colors"
-
-LIRC_PIN="26"
 
 # --- basic packages   ------------------------------------------------------
 
