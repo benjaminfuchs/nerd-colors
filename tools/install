@@ -1,0 +1,119 @@
+#!/bin/bash
+# --------------------------------------------------------------------------
+# This script installs files and services specific to this project.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/nerd-alarmclock
+#
+# --------------------------------------------------------------------------
+
+PACKAGES="python-pip python-blinkt python-simplejson python-bottle"
+PROJECT="nerd-colors"
+
+LIRC_PIN="26"
+
+# --- basic packages   ------------------------------------------------------
+
+check_packages() {
+  local p
+  for p in "$@"; do
+    echo -en "Checking $p ... " >&2
+    dpkg -s "$p" 2>/dev/null | grep -q "Status.*ok" || return 0
+    echo "ok" >&2
+  done
+  return 1
+}
+
+install_packages() {
+  if [ -n "$PACKAGES" ] && check_packages $PACKAGES; then
+    echo -e "[INFO] installing additional packages" 2>&1
+    apt-get update
+    apt-get -y install $PACKAGES
+  fi
+
+  pip list 2>/dev/null | grep -q telepot || pip install telepot
+}
+
+# --- install specific files   ----------------------------------------------
+
+install_files() {
+  echo -e "[INFO] installing project files" 2>&1
+
+  rand="$RANDOM"
+  if [ -f "/etc/$PROJECT.conf" ]; then
+    # save current configuration
+    mv "/etc/$PROJECT.conf" "/etc/$PROJECT.conf.$rand"
+  fi
+
+  for f in `find $(dirname "$0")/../files/ -type f -not -name "*.pyc"`; do
+    target="${f#*files}"
+    target_dir="${target%/*}"
+    [ ! -d "$target_dir" ] && mkdir -p "$target_dir"
+    cp "$f" "$target"
+    chown root:root "$target"
+  done
+
+  chmod 755 "/usr/local/sbin/$PROJECT.py"
+  chmod 644 "/etc/$PROJECT.conf"
+  chmod 644 "/etc/systemd/system/$PROJECT.service"
+
+  # restore old configuration
+  if [ -f "/etc/$PROJECT.conf.$rand" ]; then
+    mv -f "/etc/$PROJECT.conf" "/etc/$PROJECT.conf.$PROJECT"
+    mv "/etc/$PROJECT.conf.$rand" "/etc/$PROJECT.conf"
+    echo -e "[INFO] new version of configuration file saved to: /etc/$PROJECT.conf.$PROJECT" 2>&1
+  fi
+}
+
+# --- configure system   ----------------------------------------------------
+
+configure_system() {
+  # update /boot/config.txt
+  if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt ; then
+    echo -e "[INFO] configuring i2c in /boot/config.txt" 2>&1
+    echo "dtparam=i2c_arm=on" >> /boot/config.txt
+  fi
+
+  # update /etc/modules
+  if ! grep -q "^i2c-dev" /etc/modules; then
+    echo -e "[INFO] configuring /etc/modules" 2>&1
+    echo "i2c-dev" >> /etc/modules
+  fi
+
+  # add directory to python-path
+  if ! grep -q "/usr/local/lib/python2.7/site-packages" \
+                                 /etc/python2.7/sitecustomize.py; then
+    echo -e "[INFO] updating /etc/python2.7/sitecustomize.py"
+    echo -e "\nimport site\nsite.addsitedir('/usr/local/lib/python2.7/site-packages')" >> \
+                                               /etc/python2.7/sitecustomize.py
+  fi
+
+  # create user
+  if ! grep -q "nerdc" /etc/passwd; then
+    echo -e "[INFO] create system-user nerdc:nerdc" 2>&1
+    groupadd -r nerdc
+    adduser --disabled-login --gecos "" --system --group \
+                                        --home /var/lib/nerd-colors nerdc
+    usermod -a -G gpio,i2c nerdc
+  fi
+  chown -R nerdc:nerdc /var/lib/nerd-colors
+}
+
+# --- activate service   ----------------------------------------------------
+
+enable_services() {
+  echo -e "[INFO] enabeling $PROJECT.service" 2>&1
+  systemctl enable "$PROJECT.service"
+}
+
+# --- main program   --------------------------------------------------------
+
+install_packages
+install_files
+configure_system
+enable_services
+
+echo "Please edit /etc/$PROJECT.conf"
+echo "Restart the system to activate changes"
