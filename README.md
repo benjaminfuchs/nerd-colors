@@ -121,3 +121,10 @@ Hacking
 If you want to change the code and adapt it for your needs, you need some
 python know-how and you have to understand the structure of the program.
 For details read the [hacking-guide](doc/hacking.md "Hacking-Guide").
+
+
+Credits
+-------
+
+Big thanks to Bernhard Bablok for his [nerd-alarmclock](https://github.com/bablokb/nerd-alarmclock)
+which was used as template for this project.
