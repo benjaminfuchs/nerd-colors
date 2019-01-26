@@ -17,7 +17,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-User=nerdc
+User=root
 ExecStart=/usr/local/sbin/nerd-colors.py
 
 [Install]
